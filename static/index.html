@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SR Model Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <div id="main-container">
+
+        <!-- COLUMN 1: Graph + Controls (40%) -->
+        <div id="left-column">
+            <div id="graph-panel">
+                <!-- p5.js Canvas injected here -->
+            </div>
+
+            <div id="control-panel">
+                <h3>Simulation Controls</h3>
+                <div class="control-row">
+                    <button id="btn-reveal">Step 1: Pre-Exposure</button>
+                    <button id="btn-explore">Step 2: Exploration</button>
+                    <button id="btn-decision">Step 3: Decision</button>
+                </div>
+                <div class="status-row">
+                    <span id="status-text">Status: Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: Matrix + Heatmap (40%) -->
+        <div id="center-column">
+            <h2>Transition Matrix (T)</h2>
+            <div id="matrix-container" class="matrix-placeholder">
+                Initializing...
+            </div>
+
+            <div id="probs-panel">
+                <h2>Next Step Probabilities</h2>
+                <div id="probs-container"></div>
+            </div>
+        </div>
+
+        <!-- COLUMN 3: Configuration (20%) -->
+        <div id="right-column">
+            <h2>Configuration</h2>
+
+            <div class="config-section">
+                <label class="config-label">Scenario</label>
+                <select id="scenario-select" class="config-input">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+
+            <div class="config-section">
+                <label class="config-label">Model</label>
+                <select id="model-select" class="config-input">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+
+            <hr style="border-color: #333; margin: 15px 0;">
+
+            <div id="params-container">
+                <!-- Parameters generated dynamically -->
+            </div>
+
+            <button id="btn-apply">Apply & Reset</button>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/draw_utils.js"></script>
+    <script src="/static/sketch.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,269 @@
+/* static/style.css */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    /* Prevent body scroll */
+}
+
+/* --- Main Layout --- */
+#main-container {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* --- COLUMN 1: Graph (Left, 40%) --- */
+#left-column {
+    flex: 2;
+    /* 40% */
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #333;
+    min-width: 0;
+    /* Prevents flex overflow issues */
+}
+
+#graph-panel {
+    flex: 1;
+    /* Takes all available height above controls */
+    background-color: #1e1e1e;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#control-panel {
+    height: 120px;
+    /* Fixed height for controls */
+    background-color: #252526;
+    border-top: 1px solid #333;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#control-panel h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #aaa;
+    text-transform: uppercase;
+}
+
+.control-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.status-row {
+    font-size: 14px;
+    color: #888;
+}
+
+/* --- COLUMN 2: Data (Center, 40%) --- */
+#center-column {
+    flex: 2;
+    /* 40% */
+    background-color: #181818;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Vertically center content */
+    padding: 20px;
+    overflow-y: auto;
+}
+
+h2 {
+    color: #aaa;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    margin-top: 0;
+}
+
+/* Matrix Styles */
+#matrix-container {
+    display: grid;
+    grid-template-columns: 35px repeat(9, 1fr);
+    grid-gap: 2px;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 30px;
+}
+
+.matrix-placeholder {
+    border: 1px dashed #555;
+    padding: 40px;
+    text-align: center;
+    color: #777;
+    grid-column: 1 / -1;
+}
+
+.matrix-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    background-color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #fff;
+    border-radius: 2px;
+}
+
+.matrix-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #888;
+    font-weight: bold;
+}
+
+/* Probability Heatmap Styles */
+#probs-panel {
+    width: 100%;
+    max-width: 500px;
+    border-top: 1px solid #333;
+    padding-top: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#probs-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    background-color: #222;
+    border: 1px solid #444;
+}
+
+.vector-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    border-right: 1px solid #333;
+}
+
+.vector-col:last-child {
+    border-right: none;
+}
+
+.vector-label {
+    position: absolute;
+    top: -18px;
+    font-size: 10px;
+    color: #aaa;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+}
+
+.vector-cell {
+    width: 100%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #fff;
+    font-family: monospace;
+}
+
+/* --- COLUMN 3: Config (Right, 20%) --- */
+#right-column {
+    flex: 1;
+    /* 20% */
+    background-color: #202020;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.config-section {
+    margin-bottom: 15px;
+}
+
+.config-label {
+    display: block;
+    color: #aaa;
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.config-input {
+    width: 100%;
+    background-color: #333;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.config-input:focus {
+    border-color: #007acc;
+    outline: none;
+}
+
+/* UI Elements */
+button {
+    background-color: #007acc;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex: 1;
+}
+
+button:hover {
+    background-color: #005f9e;
+}
+
+button:disabled {
+    background-color: #444;
+    cursor: not-allowed;
+}
+
+#btn-apply {
+    background-color: #d35400;
+    margin-top: 20px;
+    font-weight: bold;
+
+    /* Override the generic button 'flex: 1' so it doesn't stretch vertically */
+    flex: 0 0 auto;
+
+    /* Standard compact sizing */
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    height: auto;
+}
+
+#btn-apply:hover {
+    background-color: #e67e22;
+}
