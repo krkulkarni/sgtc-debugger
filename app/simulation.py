@@ -87,12 +87,25 @@ class Simulation:
             return
         step_duration = random.uniform(1.5, 2.5)
         if self.active_node is not None:
+            # 1. Update Matrix based on current node
             self.learner.update_matrix(self.active_node, duration=step_duration)
+            
+            # 2. Move to next node
             next_node = self.learner.exploration_policy(self.active_node)
             self.active_node = int(next_node)
+            
+            # 3. Accumulate Time
             self.elapsed_time += step_duration
+            
+            # 4. Goal Reset Logic
             if self.active_node == self.scenario_data['goalNode']:
-                self.active_node = self.scenario_data['startNode']
+                # 50% Chance -> Reset to Start
+                if random.random() < 0.5:
+                    self.active_node = self.scenario_data['startNode']
+                # 50% Chance -> Random Node (Teleport)
+                else:
+                    num_nodes = len(self.scenario_data['nodes'])
+                    self.active_node = random.randint(0, num_nodes - 1)
     def step_decision(self):
         if self.phase != "DECISION" or not self.learner: return
         if self.active_node == self.scenario_data['goalNode']:
