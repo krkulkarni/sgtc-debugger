@@ -6,7 +6,7 @@ The application separates the "Brain" (Python/FastAPI) from the "Visuals" (p5.js
 
 ---
 
-## 🚀 Features
+## Features
 
 *   **Interactive Graph Simulation:** Visualizes agent movement through various 3x3 graph topologies.
 *   **Step-by-Step Execution:** Manually step through three distinct phases:
@@ -20,7 +20,7 @@ The application separates the "Brain" (Python/FastAPI) from the "Visuals" (p5.js
 
 ---
 
-## 🧠 Computational Models
+## Computational Models
 
 This tool implements four distinct agent architectures to test different hypotheses of addiction:
 
@@ -37,7 +37,7 @@ This tool implements four distinct agent architectures to test different hypothe
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 *   **Backend:** Python 3.9+, FastAPI, NumPy.
 *   **Frontend:** HTML5, CSS3, p5.js (Canvas visualization).
@@ -45,7 +45,7 @@ This tool implements four distinct agent architectures to test different hypothe
 
 ---
 
-## 📦 Local Installation & Running
+## Local Installation & Running
 
 1.  **Clone the repository:**
     ```bash
@@ -69,7 +69,7 @@ This tool implements four distinct agent architectures to test different hypothe
 
 ---
 
-## ☁️ Deployment (Vercel)
+## Deployment (Vercel)
 
 This project is configured for deployment on **Vercel** using Python Serverless Functions.
 
@@ -81,6 +81,7 @@ To support the Vercel Python Runtime, the project uses the following structure:
 ├── api/
 │   └── index.py          # Entry point for Vercel Serverless
 ├── app/
+│   ├── __init__.py       # App initialization
 │   ├── main.py           # FastAPI App definition
 │   ├── models.py         # Computational Models
 │   ├── simulation.py     # State Management
@@ -88,6 +89,7 @@ To support the Vercel Python Runtime, the project uses the following structure:
 ├── static/
 │   ├── index.html        # Frontend Entry
 │   ├── sketch.js         # p5.js Logic
-│   └── ...
+│   └── draw_utils.js     # p5.js Drawing Utilities
+│   └── style.css         # p5.js Styling
 ├── requirements.txt      # Python Dependencies
 └── vercel.json           # Routing Configuration

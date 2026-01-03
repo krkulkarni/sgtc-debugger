@@ -2,20 +2,20 @@
 import random
 from app.models import (
     SimpleLearner, 
-    HabitLearner, 
-    ValuationLearner, 
-    PlanningBiasLearner, 
-    TimeGatedLearner
+    HabitBiasAgent,
+    ValueBiasAgent,
+    FixedPlanningBiasAgent,
+    TimeGatedAgent
 )
 from app.scenarios import get_scenario_data
 
 # Registry of available models
 MODEL_REGISTRY = {
     "SimpleLearner": SimpleLearner,
-    "HabitLearner": HabitLearner,
-    "ValuationLearner": ValuationLearner,
-    "PlanningBiasLearner": PlanningBiasLearner,
-    "TimeGatedLearner": TimeGatedLearner
+    "HabitBiasAgent": HabitBiasAgent,
+    "ValueBiasAgent": ValueBiasAgent,
+    "FixedPlanningBiasAgent": FixedPlanningBiasAgent,
+    "TimeGatedAgent": TimeGatedAgent
 }
 
 class Simulation:

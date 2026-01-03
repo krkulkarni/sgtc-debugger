@@ -88,7 +88,7 @@ class SimpleLearner:
         next_node = np.random.choice(range(self.num_nodes), p=probs)
         return int(next_node)
 
-class HabitLearner:
+class HabitBiasAgent:
     
     @staticmethod
     def get_config_schema():
@@ -245,7 +245,7 @@ class HabitLearner:
         next_node = np.random.choice(range(self.num_nodes), p=probs)
         return int(next_node)
 
-class ValuationLearner:
+class ValueBiasAgent:
     
     @staticmethod
     def get_config_schema():
@@ -365,7 +365,7 @@ class ValuationLearner:
         next_node = np.random.choice(range(self.num_nodes), p=probs)
         return int(next_node)
 
-class PlanningBiasLearner:
+class FixedPlanningBiasAgent:
     
     @staticmethod
     def get_config_schema():
@@ -495,7 +495,7 @@ class PlanningBiasLearner:
         next_node = np.random.choice(range(self.num_nodes), p=probs)
         return int(next_node)
 
-class TimeGatedLearner:
+class TimeGatedAgent:
     
     @staticmethod
     def get_config_schema():
