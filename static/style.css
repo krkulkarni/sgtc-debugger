@@ -18,10 +18,10 @@ body {
     width: 100vw;
 }
 
-/* --- COLUMN 1: Graph (Left, 40%) --- */
+/* --- COLUMN 1: Graph (Left, 50%) --- */
 #left-column {
-    flex: 2;
-    /* 40% */
+    flex: 50;
+    /* 50% */
     display: flex;
     flex-direction: column;
     border-right: 1px solid #333;
@@ -72,10 +72,10 @@ body {
     color: #888;
 }
 
-/* --- COLUMN 2: Data (Center, 40%) --- */
+/* --- COLUMN 2: Data (Center, 35%) --- */
 #center-column {
-    flex: 2;
-    /* 40% */
+    flex: 35;
+    /* 35% */
     background-color: #181818;
     border-right: 1px solid #333;
     display: flex;
@@ -188,10 +188,10 @@ h2 {
     font-family: monospace;
 }
 
-/* --- COLUMN 3: Config (Right, 20%) --- */
+/* --- COLUMN 3: Config (Right, 15%) --- */
 #right-column {
-    flex: 1;
-    /* 20% */
+    flex: 15;
+    /* 15% */
     background-color: #202020;
     padding: 20px;
     display: flex;
