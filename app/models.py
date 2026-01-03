@@ -95,7 +95,7 @@ class HabitBiasAgent:
         return {
             "beta":          {"type": "float", "default": 0.8, "min": 0.0, "max": 1.0, "step": 0.05, "label": "Compulsion (Beta)"},
             "epsilon":       {"type": "float", "default": 0.1, "min": 0.0, "max": 1.0, "step": 0.05, "label": "Randomness (Epsilon)"},
-            "learning_rate": {"type": "float", "default": 1.0, "min": 0.1, "max": 5.0, "step": 0.1, "label": "Increment Amount"},
+            "learning_rate": {"type": "float", "default": 0.25, "min": 0.1, "max": 5.0, "step": 0.05, "label": "Increment Amount"},
             "threshold":     {"type": "float", "default": 0.5, "min": 0.0, "max": 5.0, "step": 0.1, "label": "Validity Threshold"},
             "noise_scale":   {"type": "float", "default": 0.05, "min": 0.0, "max": 0.5, "step": 0.01, "label": "Noise Scale"}
         }
