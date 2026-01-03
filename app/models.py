@@ -93,8 +93,11 @@ class HabitBiasAgent:
     @staticmethod
     def get_config_schema():
         return {
-            "beta":    {"type": "float", "default": 0.8, "min": 0.0, "max": 1.0, "step": 0.05, "label": "Compulsion (Beta)"},
-            "epsilon": {"type": "float", "default": 0.1, "min": 0.0, "max": 1.0, "step": 0.05, "label": "Randomness (Epsilon)"}
+            "beta":          {"type": "float", "default": 0.8, "min": 0.0, "max": 1.0, "step": 0.05, "label": "Compulsion (Beta)"},
+            "epsilon":       {"type": "float", "default": 0.1, "min": 0.0, "max": 1.0, "step": 0.05, "label": "Randomness (Epsilon)"},
+            "learning_rate": {"type": "float", "default": 1.0, "min": 0.1, "max": 5.0, "step": 0.1, "label": "Increment Amount"},
+            "threshold":     {"type": "float", "default": 0.5, "min": 0.0, "max": 5.0, "step": 0.1, "label": "Validity Threshold"},
+            "noise_scale":   {"type": "float", "default": 0.05, "min": 0.0, "max": 0.5, "step": 0.01, "label": "Noise Scale"}
         }
 
     def __init__(self, scenario_data, custom_params=None):
@@ -109,13 +112,14 @@ class HabitBiasAgent:
         
         self.beta = float(self.params['beta'])
         self.epsilon = float(self.params['epsilon'])
+        self.learning_rate = float(self.params['learning_rate'])
+        self.threshold = float(self.params['threshold'])
+        self.noise_scale = float(self.params['noise_scale'])
         
-        # 1. Transition Matrix (T) - Frequency Counts
-        # We start with 0.
+        # 1. Transition Matrix (T) - Frequency Counts + Noise
         self.T = np.zeros((self.num_nodes, self.num_nodes))
         
         # 2. Drug Encoding Vector
-        # One-hot-ish vector: 1 if Drug, 0 if Neutral/Start/Goal
         self.drug_vector = np.zeros(self.num_nodes)
         
         # Build Adjacency (Ground Truth for Exploration)
@@ -124,27 +128,37 @@ class HabitBiasAgent:
             if u < self.num_nodes and v < self.num_nodes:
                 self.adj[u].append(v)
                 
-        # Parse Roles from Scenario Data to populate Drug Vector
-        # We look at the 'nodes' list provided by get_scenario_data
+        # Parse Roles
         for node in scenario_data['nodes']:
             if node['role'] == 'drug':
                 self.drug_vector[node['id']] = 1.0
 
+    def inject_noise(self, duration):
+        """
+        Injects Gaussian noise into the frequency matrix.
+        This allows the agent to hallucinate connections (invalid paths) 
+        or forget real ones if they dip below the threshold.
+        """
+        if duration <= 0: return
+        sigma = self.noise_scale * duration 
+        noise = np.random.normal(loc=0.0, scale=sigma, size=self.T.shape)
+        self.T += noise
+
     def update_matrix(self, current_node_id, duration=2.0):
         """
-        Habit Update: Simple frequency counting.
-        Increment connection to observed neighbors by 1.
-        Ignores duration/learning rate.
+        Habit Update: 
+        1. Apply Global Noise (Drift).
+        2. Increment connection to observed neighbors by learning_rate.
         """
+        # 1. Drift
+        self.inject_noise(duration)
+
+        # 2. Increment
         neighbors = self.adj.get(current_node_id, [])
         for neighbor in neighbors:
-            self.T[current_node_id, neighbor] += 1.0
+            self.T[current_node_id, neighbor] += self.learning_rate
 
     def exploration_policy(self, current_node):
-        """
-        Standard Epsilon-Greedy for Exploration Phase.
-        Same as SimpleLearner.
-        """
         if np.random.random() < self.epsilon:
             return np.random.choice(self.num_nodes)
         
@@ -156,25 +170,23 @@ class HabitBiasAgent:
 
     def get_decision_probs(self, current_node, visited):
         """
-        Habit Decision Logic:
+        Habit Decision Logic with Noise Tolerance:
         1. Epsilon chance to pick ANY unvisited node.
-        2. (1-Epsilon) chance to pick from neighbors in T > 0.
-           - Split prob between Drug and Neutral neighbors based on Beta.
+        2. Bias Mass distributed among neighbors where T > threshold.
         """
         probs = np.zeros(self.num_nodes)
         
         # 1. Identify Candidates (Unvisited)
         candidates = [n for n in range(self.num_nodes) if n not in visited]
         if not candidates:
-            return probs # All zeros (trapped)
+            return probs 
 
-        # 2. Identify Valid Neighbors (Learned structure T > 0)
-        # We only care if T > 0 (Binary check)
+        # 2. Identify Valid Neighbors (Using THRESHOLD)
         learned_row = self.T[current_node, :]
-        valid_neighbors = [c for c in candidates if learned_row[c] > 0]
+        # Only consider connections strong enough to be 'believed'
+        valid_neighbors = [c for c in candidates if learned_row[c] > self.threshold]
         
-        # --- CASE A: No Learned Neighbors ---
-        # If we haven't learned any paths from here, pure random walk among unvisited
+        # --- CASE A: No Learned Neighbors (or all below threshold) ---
         if not valid_neighbors:
             count = len(candidates)
             for c in candidates:
@@ -184,16 +196,15 @@ class HabitBiasAgent:
         # --- CASE B: Has Learned Neighbors ---
         
         # A. Teleportation Mass (Epsilon) distributed across ALL candidates
-        # (This represents the "Random unvisited node" logic)
         teleport_prob_total = self.epsilon
         teleport_prob_per_node = teleport_prob_total / len(candidates)
         for c in candidates:
             probs[c] += teleport_prob_per_node
             
-        # B. Bias Mass (1 - Epsilon) distributed across Valid Neighbors
+        # B. Bias Mass (1 - Epsilon) distributed across "Valid" Neighbors
         bias_mass_total = 1.0 - self.epsilon
         
-        # Categorize Neighbors
+        # Categorize Neighbors (Drug vs Neutral)
         drug_neighbors = []
         neutral_neighbors = []
         
@@ -209,9 +220,6 @@ class HabitBiasAgent:
         # Distribute Bias Mass
         if n_drug > 0 and n_neutral > 0:
             # Both exist: Split by Beta
-            # Drug Group gets: bias_mass * Beta
-            # Neutral Group gets: bias_mass * (1-Beta)
-            
             p_per_drug = (bias_mass_total * self.beta) / n_drug
             p_per_neutral = (bias_mass_total * (1.0 - self.beta)) / n_neutral
             
@@ -219,12 +227,12 @@ class HabitBiasAgent:
             for n in neutral_neighbors: probs[n] += p_per_neutral
             
         elif n_drug > 0:
-            # Only Drugs exist: They get all the bias mass
+            # Only Drugs
             p_per_drug = bias_mass_total / n_drug
             for d in drug_neighbors: probs[d] += p_per_drug
             
         elif n_neutral > 0:
-            # Only Neutrals exist: They get all the bias mass
+            # Only Neutrals
             p_per_neutral = bias_mass_total / n_neutral
             for n in neutral_neighbors: probs[n] += p_per_neutral
             
@@ -233,18 +241,15 @@ class HabitBiasAgent:
     def decision_policy(self, current_node, visited):
         probs = self.get_decision_probs(current_node, visited)
         
-        # Safety check for sum=0
         if np.sum(probs) == 0:
             candidates = [n for n in range(self.num_nodes) if n not in visited]
             if not candidates: return None
             return np.random.choice(candidates)
             
-        # Normalize just in case of float errors (though logic ensures sum=1)
         probs = probs / np.sum(probs)
         
         next_node = np.random.choice(range(self.num_nodes), p=probs)
         return int(next_node)
-
 class ValueBiasAgent:
     
     @staticmethod
@@ -370,10 +375,10 @@ class FixedPlanningBiasAgent:
     @staticmethod
     def get_config_schema():
         return {
-            # alpha_max: Base learning rate (Probability space 0-1)
-            "alpha_max":   {"type": "float", "default": 0.8, "min": 0.01, "max": 0.99, "step": 0.01, "label": "Max Alpha (Prob)"},
-            # beta: Bias penalty (Logit space). Range [-5, 5] allows shifting sigmoid effectively.
-            "beta":        {"type": "float", "default": 2.0, "min": -5.0, "max": 5.0, "step": 0.5, "label": "Bias Penalty (Logit)"},
+            # alpha_0: Baseline learning rate for Neutral items
+            "alpha_0":     {"type": "float", "default": 0.3, "min": 0.01, "max": 0.99, "step": 0.01, "label": "Baseline Alpha (Prob)"},
+            # beta: Bias Boost (Logit space). Added to Drug nodes.
+            "beta":        {"type": "float", "default": 2.0, "min": -5.0, "max": 5.0, "step": 0.5, "label": "Drug Boost (Logit)"},
             
             # Standard params
             "noise_scale": {"type": "float", "default": 0.01, "min": 0.0, "max": 0.2, "step": 0.001, "label": "Noise Scale"},
@@ -389,7 +394,7 @@ class FixedPlanningBiasAgent:
         if custom_params: defaults.update(custom_params)
         self.params = defaults
         
-        self.alpha_max = float(self.params['alpha_max'])
+        self.alpha_0 = float(self.params['alpha_0']) # Renamed from alpha_max
         self.beta = float(self.params['beta'])
         self.noise_scale = float(self.params['noise_scale'])
         self.temperature = float(self.params['temperature'])
@@ -416,7 +421,6 @@ class FixedPlanningBiasAgent:
 
     def logit(self, p):
         """ Probability Space -> Logit Space """
-        # Clip to prevent inf/nan
         p = np.clip(p, 1e-6, 1.0 - 1e-6)
         return np.log(p / (1 - p))
 
@@ -441,27 +445,25 @@ class FixedPlanningBiasAgent:
         pe = target_vector - current_estimation
 
         # 4. Calculate Vectorized Alpha
-        # 4a. Convert base alpha to Logit Score
-        base_score = self.logit(self.alpha_max)
+        # 4a. Convert Baseline Alpha to Logit Score
+        base_score = self.logit(self.alpha_0)
         
         # 4b. Create Alpha Vector
         alpha_vector = np.zeros(self.num_nodes)
         
         for i in range(self.num_nodes):
-            # Start with base score
             score = base_score
             
-            # Apply Penalty if NOT a drug node (Neutral)
-            # Logic: Drug nodes get full attention (base_score).
-            # Neutral nodes get penalized (base_score - beta).
-            if self.drug_vector[i] == 0.0:
-                score -= self.beta
+            # Logic Change:
+            # If Drug: Score = Baseline + Beta (Boost)
+            # If Neutral: Score = Baseline
+            if self.drug_vector[i] == 1.0:
+                score += self.beta
             
             # Convert back to Probability Space
             alpha_vector[i] = self.sigmoid(score)
 
         # 5. Apply Vectorized Update
-        # Element-wise multiplication: Each column 'i' is updated with its specific alpha[i]
         self.T[current_node_id, :] += alpha_vector * pe
 
     # --- Policies (Standard) ---
@@ -481,7 +483,6 @@ class FixedPlanningBiasAgent:
         return e_x / sum_e_x
 
     def get_decision_probs(self, current_node, visited):
-        # Standard Softmax on T (The bias is encoded IN the matrix T itself)
         logits = self.T[current_node, :].copy()
         for v in visited: logits[v] = -np.inf
         return self.softmax(logits)
@@ -494,7 +495,6 @@ class FixedPlanningBiasAgent:
             return np.random.choice(candidates)
         next_node = np.random.choice(range(self.num_nodes), p=probs)
         return int(next_node)
-
 class TimeGatedAgent:
     
     @staticmethod

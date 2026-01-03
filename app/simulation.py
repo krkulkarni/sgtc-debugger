@@ -59,7 +59,6 @@ class Simulation:
         self.decision_path = []
         return True
 
-    # ... (validate_path, step_reveal, step_explore, step_decision, get_state remain SAME) ...
     def validate_path(self):
         if not self.decision_path or len(self.decision_path) < 2: return True
         valid_edges = set((u, v) for u, v in self.scenario_data['edges'])
